@@ -286,13 +286,6 @@ Pull requests are welcome for improvements such as:
 - Multi-event support
 
 Please open an issue first to discuss significant changes.
-
----
-
-##  License
-
-This project is licensed under the MIT License.
-
 ---
 
 ##  Author
