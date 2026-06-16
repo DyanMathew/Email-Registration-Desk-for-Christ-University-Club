@@ -298,5 +298,4 @@ This project is licensed under the MIT License.
 ##  Author
 
 **Dyan Reji Mathew**  
-CAPS Committee — Tech Developer Position  
-Christ University, Bengaluru
+
