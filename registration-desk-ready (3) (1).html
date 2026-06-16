@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Event Registration Desk — CAPS BYC</title>
+  <!--
+    =====================================================================
+    SETUP (takes ~3 minutes):
+    1. Go to https://www.emailjs.com and create a free account.
+    2. Add an Email Service (Gmail works fine) → copy the Service ID.
+    3. Create an Email Template with these variables:
+         {{to_email}}   — recipient's email
+         {{to_name}}    — recipient's first name
+         {{wifi_pass}}  — the WiFi password
+         {{event_name}} — event name
+       Example template body:
+         Hi {{to_name}}, welcome to {{event_name}}!
+         WiFi Password: {{wifi_pass}}
+    4. Copy the Template ID.
+    5. Go to Account → API Keys → copy the Public Key.
+    6. Fill in the three constants below.
+    =====================================================================
+  -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <style>
+    :root {
+      --blue: #2563EB;
+      --blue-dark: #1D4ED8;
+      --blue-light: #DBEAFE;
+      --green: #10B981;
+      --green-light: #D1FAE5;
+      --green-dark: #065F46;
+      --amber: #F59E0B;
+      --amber-light: #FEF3C7;
+      --amber-dark: #92400E;
+      --red: #EF4444;
+      --red-light: #FEE2E2;
+      --red-dark: #991B1B;
+      --bg: #F8FAFC;
+      --surface: #FFFFFF;
+      --border: #E2E8F0;
+      --text: #0F172A;
+      --text-muted: #64748B;
+      --text-hint: #94A3B8;
+      --radius: 10px;
+      --radius-sm: 6px;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0F1117;
+        --surface: #1E2028;
+        --border: #2D3748;
+        --text: #F1F5F9;
+        --text-muted: #94A3B8;
+        --text-hint: #64748B;
+        --blue-light: #1E3A8A;
+        --green-light: #064E3B;
+        --amber-light: #451A03;
+        --red-light: #450A0A;
+      }
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg); color: var(--text);
+      min-height: 100vh; font-size: 15px; line-height: 1.6;
+    }
+
+    /* ── HEADER ── */
+    .header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 24px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 10;
+    }
+    .logo { display: flex; align-items: center; gap: 10px; }
+    .live-dot {
+      width: 9px; height: 9px; border-radius: 50%; background: var(--green);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.4)} }
+    .logo-text { font-size: 15px; font-weight: 600; }
+    .logo-sub { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+    .header-stats { display: flex; gap: 12px; }
+    .stat-chip {
+      font-size: 12px; background: var(--bg);
+      border: 1px solid var(--border); border-radius: 20px;
+      padding: 4px 12px; display: flex; align-items: center; gap: 6px;
+      color: var(--text-muted);
+    }
+    .stat-chip b { color: var(--text); font-weight: 600; }
+
+    /* ── LAYOUT ── */
+    .main {
+      max-width: 1040px; margin: 0 auto; padding: 24px 20px;
+      display: grid; grid-template-columns: 1fr 340px; gap: 20px;
+    }
+    @media (max-width: 760px) {
+      .main { grid-template-columns: 1fr; }
+    }
+
+    /* ── SETUP BANNER ── */
+    .setup-banner {
+      background: #EFF6FF; border: 1px solid #BFDBFE;
+      border-radius: var(--radius); padding: 14px 16px;
+      margin-bottom: 20px; font-size: 13px; color: #1E40AF;
+      display: flex; gap: 10px; align-items: flex-start;
+    }
+    @media (prefers-color-scheme: dark) {
+      .setup-banner { background: #1E3A8A22; border-color: #1E40AF; color: #93C5FD; }
+    }
+    .setup-banner code {
+      background: rgba(0,0,0,.08); border-radius: 4px;
+      padding: 1px 5px; font-family: monospace; font-size: 12px;
+    }
+
+    /* ── CARD ── */
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 24px;
+    }
+    .card-label {
+      font-size: 10px; font-weight: 700; letter-spacing: .08em;
+      text-transform: uppercase; color: var(--text-hint);
+      margin-bottom: 20px; display: flex; align-items: center;
+      justify-content: space-between;
+    }
+
+    /* ── FORM ── */
+    .form-row { margin-bottom: 14px; }
+    .form-row label {
+      display: block; font-size: 13px; font-weight: 500;
+      color: var(--text-muted); margin-bottom: 5px;
+    }
+    .form-row input, .form-row select {
+      width: 100%; padding: 10px 13px; font-size: 15px;
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      background: var(--bg); color: var(--text);
+      transition: border-color .15s, box-shadow .15s;
+      outline: none; font-family: inherit;
+    }
+    .form-row input:focus, .form-row select:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(37,99,235,.15);
+    }
+    .form-row input.mono { font-family: 'SF Mono', 'Fira Code', monospace; letter-spacing: .04em; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+    /* ── REGISTER BUTTON ── */
+    .register-btn {
+      width: 100%; padding: 13px; font-size: 15px; font-weight: 600;
+      background: var(--blue); color: #fff; border: none;
+      border-radius: var(--radius-sm); cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      margin-top: 8px; transition: background .15s, transform .1s;
+      letter-spacing: .01em;
+    }
+    .register-btn:hover:not(:disabled) { background: var(--blue-dark); }
+    .register-btn:active:not(:disabled) { transform: scale(0.98); }
+    .register-btn:disabled { background: #93C5FD; cursor: not-allowed; }
+    .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,.3); border-top-color: #fff;
+      border-radius: 50%; animation: spin .7s linear infinite; display: none;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── FEEDBACK BANNER ── */
+    .feedback {
+      border-radius: var(--radius-sm); padding: 14px 16px;
+      margin-top: 16px; display: none;
+      align-items: flex-start; gap: 12px; font-size: 14px;
+    }
+    .feedback.visible { display: flex; }
+    .feedback.success {
+      background: var(--green-light); border: 1px solid #6EE7B7; color: var(--green-dark);
+    }
+    .feedback.warning {
+      background: var(--amber-light); border: 1px solid #FCD34D; color: var(--amber-dark);
+    }
+    .feedback.error {
+      background: var(--red-light); border: 1px solid #FCA5A5; color: var(--red-dark);
+    }
+    .fb-icon { font-size: 22px; flex-shrink: 0; }
+    .fb-name { font-weight: 600; font-size: 15px; }
+    .fb-sub { font-size: 13px; margin-top: 2px; opacity: .85; }
+    @keyframes name-flash {
+      0%{transform:scale(1.06);opacity:.6}100%{transform:scale(1);opacity:1}
+    }
+    .flash { animation: name-flash .5s ease-out; }
+
+    /* ── LOG ── */
+    .log-scroll { max-height: 460px; overflow-y: auto; }
+    .log-list { list-style: none; display: flex; flex-direction: column; gap: 7px; }
+    .log-item {
+      padding: 9px 12px; border-radius: var(--radius-sm);
+      background: var(--bg); border: 1px solid var(--border);
+      display: flex; align-items: center; gap: 10px;
+      animation: slide-in .25s ease-out;
+    }
+    @keyframes slide-in { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
+    .log-item.dup { background: var(--amber-light); border-color: #FCD34D; }
+    .avatar {
+      width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
+      background: var(--blue-light); color: var(--blue);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700;
+    }
+    .log-item.dup .avatar { background: #FDE68A; color: var(--amber-dark); }
+    .log-name { font-size: 13px; font-weight: 500; }
+    .log-id { font-size: 11px; color: var(--text-hint); font-family: monospace; }
+    .log-time { font-size: 11px; color: var(--text-hint); margin-left: auto; white-space: nowrap; }
+    .dup-tag {
+      font-size: 10px; background: #FDE68A; color: var(--amber-dark);
+      border-radius: 4px; padding: 1px 5px; font-weight: 700;
+    }
+    .empty-log {
+      padding: 40px 20px; text-align: center;
+      color: var(--text-hint); font-size: 13px;
+    }
+    .empty-log svg { margin-bottom: 10px; opacity: .4; }
+
+    .clear-btn {
+      font-size: 11px; color: var(--text-hint); background: none;
+      border: none; cursor: pointer; padding: 0;
+    }
+    .clear-btn:hover { color: var(--red); }
+  </style>
+</head>
+<body>
+
+<header class="header">
+  <div class="logo">
+    <img src="https://caps.christuniversity.in/images/logo.png" alt="CAPS Logo" style="height:38px;object-fit:contain;" onerror="this.style.display='none';document.getElementById('caps-fallback').style.display='flex';" />
+    <div id="caps-fallback" style="display:none;align-items:center;gap:0;">
+      <span style="font-size:22px;font-weight:900;letter-spacing:-.5px;color:var(--text)">CAPS</span>
+      <span style="width:2px;height:28px;background:#C9A84C;margin:0 10px;display:inline-block;"></span>
+      <span style="font-size:10px;font-weight:600;color:var(--text-muted);line-height:1.3;text-transform:uppercase;letter-spacing:.03em">Centre for Academic &<br>Professional Support</span>
+    </div>
+    <div style="width:1px;height:28px;background:var(--border);margin:0 14px;"></div>
+    <div class="live-dot"></div>
+    <div>
+      <div class="logo-text">Registration Desk</div>
+      <div class="logo-sub">BYC Event</div>
+    </div>
+  </div>
+  <div class="header-stats">
+    <div class="stat-chip">✓ Registered: <b id="count">0</b></div>
+    <div class="stat-chip">⚠ Duplicates: <b id="dup-count">0</b></div>
+  </div>
+</header>
+
+<div class="main">
+  <div>
+    <div class="setup-banner" id="setup-banner">
+      ℹ️&nbsp;
+      <div>
+        <strong>Setup required for live emails:</strong> Open this file, fill in
+        <code>EMAILJS_PUBLIC_KEY</code>, <code>EMAILJS_SERVICE_ID</code>, and <code>EMAILJS_TEMPLATE_ID</code>
+        at the top of the &lt;script&gt; section. Until then, emails are simulated and logged to the browser console.
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">New registration</div>
+
+      <div class="form-grid">
+        <div class="form-row">
+          <label for="fname">First name</label>
+          <input type="text" id="fname" placeholder="Arjun" autocomplete="off" />
+        </div>
+        <div class="form-row">
+          <label for="lname">Last name</label>
+          <input type="text" id="lname" placeholder="Sharma" autocomplete="off" />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label for="email">College email</label>
+        <input type="email" id="email" placeholder="arjun.sharma@christuniversity.in" autocomplete="off" />
+      </div>
+
+      <div class="form-grid">
+        <div class="form-row">
+          <label for="sid">Student ID</label>
+          <input type="text" id="sid" placeholder="2341001" class="mono" autocomplete="off" />
+        </div>
+        <div class="form-row">
+          <label for="dept">Department</label>
+          <select id="dept">
+            <option value="">Select department...</option>
+            <option>Computer Science</option>
+            <option>Electronics &amp; Communication</option>
+            <option>Mechanical Engineering</option>
+            <option>Civil Engineering</option>
+            <option>MBA</option>
+            <option>BBA</option>
+            <option>BCA</option>
+            <option>MCA</option>
+            <option>Other</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="register-btn" id="reg-btn" onclick="handleRegister()">
+        <div class="spinner" id="spinner"></div>
+        <span id="btn-text">Register &amp; Send WiFi Password</span>
+      </button>
+
+      <div class="feedback" id="feedback">
+        <div class="fb-icon" id="fb-icon"></div>
+        <div>
+          <div class="fb-name" id="fb-name"></div>
+          <div class="fb-sub" id="fb-sub"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <div class="card">
+      <div class="card-label">
+        Registered today
+        <button class="clear-btn" onclick="clearLog()">Clear all</button>
+      </div>
+      <div class="log-scroll">
+        <ul class="log-list" id="log-list">
+          <li class="empty-log" id="empty-msg">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 0 2-2h2a2 2 0 0 0 2 2"/>
+            </svg>
+            No registrations yet
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  /* ============================================================
+     CONFIG — fill these in before going live
+     ============================================================ */
+  const EMAILJS_PUBLIC_KEY   = '-S5nzE-eo9MXcodq1';   // e.g. 'abc123XYZ'
+  const EMAILJS_SERVICE_ID   = 'service_diu43hr';   // e.g. 'service_xxxxx'
+  const EMAILJS_TEMPLATE_ID  = 'template_ypxfkpg';  // e.g. 'template_xxxxx'
+
+  const EVENT_NAME   = 'CAPS BYC Tech Fest 2025';
+  const WIFI_PASSWORD = 'CAPS@BYC2025';
+
+  /* ============================================================
+     STATE
+     ============================================================ */
+  const isConfigured = true;
+  if (isConfigured) {
+    emailjs.init(EMAILJS_PUBLIC_KEY);
+    document.getElementById('setup-banner').style.display = 'none';
+  }
+
+  /* Persist across page refreshes using sessionStorage (cleared when tab closes) */
+  let registered = new Map(JSON.parse(sessionStorage.getItem('reg') || '[]'));
+  let dupCount = parseInt(sessionStorage.getItem('dups') || '0');
+  updateStats();
+  restoreLog();
+
+  /* ============================================================
+     EMAIL
+     ============================================================ */
+  async function sendEmail(toEmail, toName) {
+    if (!isConfigured) {
+      /* Demo mode: simulate network delay */
+      await new Promise(r => setTimeout(r, 900));
+      console.log(`[DEMO] Would send to: ${toEmail}\nWiFi: ${WIFI_PASSWORD}`);
+      return;
+    }
+    await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+      to_email:   toEmail,
+      to_name:    toName,
+      wifi_pass:  WIFI_PASSWORD,
+      event_name: EVENT_NAME,
+    });
+  }
+
+  /* ============================================================
+     REGISTER
+     ============================================================ */
+  async function handleRegister() {
+    const fname = v('fname');
+    const lname = v('lname');
+    const email = v('email');
+    const sid   = v('sid');
+    const dept  = v('dept');
+
+    /* Validation */
+    if (!fname || !lname || !email || !sid || !dept) {
+      showFeedback('error', 'All fields required', 'Please complete every field before registering.');
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      showFeedback('error', 'Invalid email', 'Please enter a valid email address.');
+      return;
+    }
+
+    const key = sid.trim().toLowerCase();
+
+    /* Duplicate check */
+    if (registered.has(key)) {
+      dupCount++;
+      sessionStorage.setItem('dups', dupCount);
+      addToLog(fname, lname, sid, email, true);
+      updateStats();
+      showFeedback('warning',
+        `${fname} is already registered`,
+        `Student ID ${sid} was registered at ${registered.get(key).time}. Email not re-sent.`
+      );
+      clearFields();
+      return;
+    }
+
+    /* Send */
+    setLoading(true);
+    try {
+      await sendEmail(email, fname);
+      const entry = { name: `${fname} ${lname}`, sid, email, dept, time: nowStr() };
+      registered.set(key, entry);
+      sessionStorage.setItem('reg', JSON.stringify([...registered]));
+      updateStats();
+      addToLog(fname, lname, sid, email, false);
+      showFeedback('success',
+        `${fname} ${lname} registered!`,
+        isConfigured
+          ? `WiFi password sent to ${email}`
+          : `[Demo] Email simulated — check console. WiFi: ${WIFI_PASSWORD}`
+      );
+      clearFields();
+    } catch (err) {
+      console.error('EmailJS error:', err);
+      showFeedback('error',
+        'Email delivery failed',
+        'Registration recorded, but the email could not be sent. Check EmailJS config or internet connection.'
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  /* ============================================================
+     UI HELPERS
+     ============================================================ */
+  function v(id) { return document.getElementById(id).value.trim(); }
+
+  function nowStr() {
+    return new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  function updateStats() {
+    document.getElementById('count').textContent = registered.size;
+    document.getElementById('dup-count').textContent = dupCount;
+  }
+
+  function showFeedback(type, name, sub) {
+    const fb = document.getElementById('feedback');
+    fb.className = 'feedback visible ' + type;
+    const icons = { success: '✅', warning: '⚠️', error: '❌' };
+    document.getElementById('fb-icon').textContent = icons[type];
+    const nameEl = document.getElementById('fb-name');
+    nameEl.textContent = name;
+    nameEl.classList.remove('flash');
+    void nameEl.offsetWidth;
+    nameEl.classList.add('flash');
+    document.getElementById('fb-sub').textContent = sub;
+  }
+
+  function addToLog(fname, lname, sid, email, isDup) {
+    document.getElementById('empty-msg')?.remove();
+    const list = document.getElementById('log-list');
+    const initials = (fname[0] + (lname[0] || '')).toUpperCase();
+    const li = document.createElement('li');
+    li.className = 'log-item' + (isDup ? ' dup' : '');
+    li.innerHTML = `
+      <div class="avatar">${initials}</div>
+      <div>
+        <div class="log-name">
+          ${fname} ${lname}
+          ${isDup ? '<span class="dup-tag">DUP</span>' : ''}
+        </div>
+        <div class="log-id">${sid}</div>
+      </div>
+      <div class="log-time">${nowStr()}</div>
+    `;
+    list.insertBefore(li, list.firstChild);
+  }
+
+  function setLoading(on) {
+    document.getElementById('reg-btn').disabled = on;
+    document.getElementById('spinner').style.display = on ? 'block' : 'none';
+    document.getElementById('btn-text').textContent = on
+      ? 'Sending WiFi password...'
+      : 'Register & Send WiFi Password';
+  }
+
+  function clearFields() {
+    ['fname','lname','email','sid'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('dept').selectedIndex = 0;
+    document.getElementById('fname').focus();
+  }
+
+  function clearLog() {
+    if (!confirm('Clear all registrations from this session?')) return;
+    registered.clear();
+    dupCount = 0;
+    sessionStorage.clear();
+    updateStats();
+    document.getElementById('log-list').innerHTML = `
+      <li class="empty-log" id="empty-msg">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 0 2-2h2a2 2 0 0 0 2 2"/>
+        </svg>
+        No registrations yet
+      </li>`;
+    document.getElementById('feedback').className = 'feedback';
+  }
+
+  function restoreLog() {
+    if (registered.size === 0) return;
+    for (const [, entry] of [...registered].reverse()) {
+      const [fname, ...rest] = entry.name.split(' ');
+      const lname = rest.join(' ');
+      addToLog(fname, lname, entry.sid, entry.email, false);
+    }
+  }
+
+  /* Enter key submits */
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) handleRegister();
+  });
+
+  document.getElementById('fname').focus();
+</script>
+</body>
+</html>
