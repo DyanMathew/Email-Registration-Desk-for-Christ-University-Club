@@ -1,4 +1,4 @@
-# 📋 CAPS Event Registration Desk
+#  CAPS Event Registration Desk
 
 > A lightweight, zero-dependency event registration system with automated email delivery — built for the CAPS BYC Tech Fest.
 
@@ -9,11 +9,11 @@
 
 ---
 
-## 📖 Overview
+##  Overview
 
 The **CAPS Registration Desk** is a single-file, browser-based event check-in system designed for use at the CAPS BYC Tech Fest. A volunteer simply opens one HTML file in Chrome — no server, no installation, no configuration beyond filling in three API credentials — and the desk is live. When a student is registered, their name and email are passed to the EmailJS API, which injects them into a pre-built template and instantly delivers the event WiFi password to their inbox.
 
-### ✨ Key Features
+###  Key Features
 
 - **Zero setup friction** — one file, opens in any modern browser
 - **Live email delivery** — sends WiFi credentials automatically via EmailJS
@@ -27,7 +27,7 @@ The **CAPS Registration Desk** is a single-file, browser-based event check-in sy
 
 ---
 
-## 🗂️ Repository Blueprint
+##  Repository Blueprint
 
 ```
 caps-registration-desk/
@@ -82,7 +82,7 @@ caps-registration-desk/
 
 ---
 
-## 🛠️ Tech Stack
+##  Tech Stack
 
 | Layer | Technology | Reason |
 |---|---|---|
@@ -95,7 +95,7 @@ caps-registration-desk/
 
 ---
 
-## ⚙️ Prerequisites
+##  Prerequisites
 
 Before going live you need a free [EmailJS](https://www.emailjs.com/) account and three credentials:
 
@@ -118,7 +118,7 @@ Your template must include these exact variables:
 
 ---
 
-## 🚀 Getting Started
+##  Getting Started
 
 ### Step 1 — Clone the repository
 
@@ -202,7 +202,7 @@ Open the file in Chrome on the event laptop. The blue setup banner disappears on
 
 ---
 
-## 🔄 How It Works
+##  How It Works
 
 ```
 Volunteer fills form → Submit / Enter key
@@ -230,17 +230,17 @@ Volunteer fills form → Submit / Enter key
 
 ---
 
-## 🎨 UI Color Language
+##  UI Color Language
 
 | Color | Meaning |
 |---|---|
-| 🟢 Green | Successful registration — email sent |
-| 🟡 Amber | Duplicate Student ID — email not re-sent |
-| 🔴 Red | Validation error or EmailJS delivery failure |
+|  Green | Successful registration — email sent |
+|  Amber | Duplicate Student ID — email not re-sent |
+|  Red | Validation error or EmailJS delivery failure |
 
 ---
 
-## 🧩 Departments Supported
+##  Departments Supported
 
 Out of the box the department dropdown includes:
 
@@ -257,7 +257,7 @@ To add or remove departments, edit the `<select id="dept">` options in the HTML 
 
 ---
 
-## 🔐 Security Notes
+##  Security Notes
 
 - **Never commit real API keys** to a public repository. The credentials in the CONFIG block are specific to an EmailJS free-tier account and should be rotated or restricted post-event.
 - EmailJS public keys are browser-exposed by design (similar to Firebase config) but you can whitelist your domain in the EmailJS dashboard under **Account → Security**.
@@ -265,7 +265,7 @@ To add or remove departments, edit the `<select id="dept">` options in the HTML 
 
 ---
 
-## 🐛 Troubleshooting
+##  Troubleshooting
 
 | Symptom | Likely cause | Fix |
 |---|---|---|
@@ -277,7 +277,7 @@ To add or remove departments, edit the `<select id="dept">` options in the HTML 
 
 ---
 
-## 🤝 Contributing
+##  Contributing
 
 Pull requests are welcome for improvements such as:
 
@@ -290,13 +290,13 @@ Please open an issue first to discuss significant changes.
 
 ---
 
-## 📄 License
+##  License
 
 This project is licensed under the MIT License.
 
 ---
 
-## 👤 Author
+##  Author
 
 **Dyan Reji Mathew**  
 CAPS Committee — Tech Developer Position  
