@@ -5,7 +5,6 @@
 ![Status](https://img.shields.io/badge/status-production--ready-brightgreen)
 ![Stack](https://img.shields.io/badge/stack-HTML%20%7C%20CSS%20%7C%20JS-blue)
 ![Email](https://img.shields.io/badge/email-EmailJS-orange)
-![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
 ---
 
